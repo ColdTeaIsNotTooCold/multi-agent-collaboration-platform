@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ccpm-postgres-dev
+    environment:
+      POSTGRES_DB: ccpm
+      POSTGRES_USER: ccpm_user
+      POSTGRES_PASSWORD: ccpm_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ccpm_user -d ccpm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ccpm-network
+
+  # Backend API (development mode)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ccpm-backend-dev
+    environment:
+      DATABASE_URL: "postgresql://ccpm_user:ccpm_password@postgres:5432/ccpm"
+      JWT_SECRET: "dev-secret-key"
+      PORT: 3000
+      NODE_ENV: "development"
+      CORS_ORIGIN: "http://localhost:3001"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    networks:
+      - ccpm-network
+    command: npm run dev
+
+  # Frontend Application (development mode)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: ccpm-frontend-dev
+    environment:
+      VITE_API_URL: "http://localhost:3000"
+      VITE_WS_URL: "ws://localhost:3000"
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/dist
+    networks:
+      - ccpm-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  ccpm-network:
+    driver: bridge

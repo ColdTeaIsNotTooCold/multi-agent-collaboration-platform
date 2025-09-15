@@ -14,6 +14,7 @@ import agentRoutes from './routes/agent.routes';
 import taskRoutes from './routes/task.routes';
 import authRoutes from './routes/auth.routes';
 import healthRoutes from './routes/health.routes';
+import aiRoutes from './routes/ai.routes';
 
 // Import controllers
 import { AuthController } from './controllers/auth.controller';
@@ -51,6 +52,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/agents', authenticate, agentRoutes);
 app.use('/api/tasks', authenticate, taskRoutes);
+app.use('/api/ai', authenticate, aiRoutes);
 app.use('/api/health', healthRoutes);
 
 // Root endpoint
@@ -59,10 +61,12 @@ app.get('/', (req, res) => {
     message: 'Multi-Agent Collaboration Platform API',
     version: '1.0.0',
     database: 'PostgreSQL with Prisma ORM',
+    ai: 'OpenAI GPT-4 Integration',
     endpoints: {
       auth: '/api/auth',
       agents: '/api/agents',
       tasks: '/api/tasks',
+      ai: '/api/ai',
       health: '/api/health'
     }
   });
