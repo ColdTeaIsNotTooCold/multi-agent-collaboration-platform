@@ -9,47 +9,47 @@ export class TaskService {
     this.taskModel = new TaskModel();
   }
 
-  createTask(data: CreateTaskRequest, createdBy: string): Task {
+  async createTask(data: CreateTaskRequest, createdBy: string): Promise<Task> {
     logger.info('Creating new task', { title: data.title, priority: data.priority, createdBy });
     return this.taskModel.create(data, createdBy);
   }
 
-  getTask(id: string): Task | undefined {
+  async getTask(id: string): Promise<Task | undefined> {
     return this.taskModel.findById(id);
   }
 
-  getAllTasks(): Task[] {
+  async getAllTasks(): Promise<Task[]> {
     return this.taskModel.findAll();
   }
 
-  updateTask(id: string, data: UpdateTaskRequest): Task | null {
+  async updateTask(id: string, data: UpdateTaskRequest): Promise<Task | null> {
     logger.info('Updating task', { id, data });
     return this.taskModel.update(id, data);
   }
 
-  deleteTask(id: string): boolean {
+  async deleteTask(id: string): Promise<boolean> {
     logger.info('Deleting task', { id });
     return this.taskModel.delete(id);
   }
 
-  assignTask(taskId: string, agentId: string): Task | null {
+  async assignTask(taskId: string, agentId: string): Promise<Task | null> {
     logger.info('Assigning task', { taskId, agentId });
     return this.taskModel.assignTask(taskId, agentId);
   }
 
-  getTasksByStatus(status: Task['status']): Task[] {
+  async getTasksByStatus(status: Task['status']): Promise<Task[]> {
     return this.taskModel.findByStatus(status);
   }
 
-  getTasksByAssignee(agentId: string): Task[] {
+  async getTasksByAssignee(agentId: string): Promise<Task[]> {
     return this.taskModel.findByAssignee(agentId);
   }
 
-  getTasksByCreator(creatorId: string): Task[] {
+  async getTasksByCreator(creatorId: string): Promise<Task[]> {
     return this.taskModel.findByCreator(creatorId);
   }
 
-  getTasksByPriority(priority: Task['priority']): Task[] {
+  async getTasksByPriority(priority: Task['priority']): Promise<Task[]> {
     return this.taskModel.findByPriority(priority);
   }
 }

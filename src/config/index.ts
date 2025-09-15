@@ -2,8 +2,9 @@ export const config = {
   port: process.env.PORT || 3000,
   jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
   database: {
-    // Using in-memory storage for MVP
-    type: 'memory'
+    url: process.env.DATABASE_URL || 'postgresql://localhost:5432/ccpm',
+    // Using PostgreSQL for persistent storage
+    type: 'postgresql'
   },
   cors: {
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',

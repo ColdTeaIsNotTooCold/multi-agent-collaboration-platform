@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import { logger } from './utils/logger';
 import { authenticate } from './middleware/auth';
+import { connectDatabase, disconnectDatabase } from './utils/database';
 
 // Import routes
 import agentRoutes from './routes/agent.routes';
@@ -57,6 +58,7 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Multi-Agent Collaboration Platform API',
     version: '1.0.0',
+    database: 'PostgreSQL with Prisma ORM',
     endpoints: {
       auth: '/api/auth',
       agents: '/api/agents',
@@ -107,12 +109,59 @@ export { io };
 
 // Initialize default admin user
 const authController = new AuthController();
-authController.initializeDefaultAdmin();
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down gracefully...');
+  try {
+    await disconnectDatabase();
+    server.close(() => {
+      logger.info('Server closed');
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error('Error during graceful shutdown:', error);
+    process.exit(1);
+  }
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down gracefully...');
+  try {
+    await disconnectDatabase();
+    server.close(() => {
+      logger.info('Server closed');
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error('Error during graceful shutdown:', error);
+    process.exit(1);
+  }
+});
 
 // Start server
-server.listen(config.port, () => {
-  logger.info(`Server started on port ${config.port}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+async function startServer() {
+  try {
+    // Connect to database
+    await connectDatabase();
+    logger.info('Database connected successfully');
+
+    // Initialize default admin user (now with database)
+    await authController.initializeDefaultAdmin();
+    logger.info('Default admin user initialized');
+
+    // Start server
+    server.listen(config.port, () => {
+      logger.info(`Server started on port ${config.port}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`Database: PostgreSQL`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 export default app;

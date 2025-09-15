@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  createdTasks Task[] @relation("TaskCreator")
+  sessions     Session[]
+
+  @@map("users")
+}
+
+model Agent {
+  id           String      @id @default(cuid())
+  name         String
+  type         AgentType
+  capabilities String[]
+  status       AgentStatus @default(ACTIVE)
+  metadata     Json
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relationships
+  assignedTasks Task[] @relation("TaskAssignee")
+
+  @@map("agents")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  status      TaskStatus @default(PENDING)
+  priority    Priority   @default(MEDIUM)
+  createdBy   String
+  assignedTo  String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  completedAt DateTime?
+  metadata    Json
+
+  // Relationships
+  creator User   @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  assignee Agent? @relation("TaskAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@map("tasks")
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  content   String
+  senderId  String
+  senderType SenderType
+  receiverId String?
+  receiverType ReceiverType?
+  taskId    String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  metadata  Json
+
+  // Relationships
+  task      Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AgentType {
+  AI
+  HUMAN
+  BOT
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  BUSY
+}
+
+enum TaskStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum SenderType {
+  USER
+  AGENT
+}
+
+enum ReceiverType {
+  USER
+  AGENT
+}

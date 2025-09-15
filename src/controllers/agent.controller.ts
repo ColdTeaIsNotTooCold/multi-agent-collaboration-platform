@@ -22,7 +22,7 @@ export class AgentController {
   createAgent = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const data: CreateAgentRequest = req.body;
-      const agent = this.agentService.createAgent(data);
+      const agent = await this.agentService.createAgent(data);
 
       res.status(201).json({
         success: true,
@@ -41,7 +41,7 @@ export class AgentController {
   getAgent = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const agent = this.agentService.getAgent(id);
+      const agent = await this.agentService.getAgent(id);
 
       if (!agent) {
         res.status(404).json({
@@ -66,7 +66,7 @@ export class AgentController {
 
   getAllAgents = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const agents = this.agentService.getAllAgents();
+      const agents = await this.agentService.getAllAgents();
 
       res.status(200).json({
         success: true,
@@ -86,7 +86,7 @@ export class AgentController {
     try {
       const { id } = req.params;
       const data: UpdateAgentRequest = req.body;
-      const agent = this.agentService.updateAgent(id, data);
+      const agent = await this.agentService.updateAgent(id, data);
 
       if (!agent) {
         res.status(404).json({
@@ -113,7 +113,7 @@ export class AgentController {
   deleteAgent = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const deleted = this.agentService.deleteAgent(id);
+      const deleted = await this.agentService.deleteAgent(id);
 
       if (!deleted) {
         res.status(404).json({
@@ -139,7 +139,7 @@ export class AgentController {
   getAgentsByCapability = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { capability } = req.params;
-      const agents = this.agentService.getAgentsByCapability(capability);
+      const agents = await this.agentService.getAgentsByCapability(capability);
 
       res.status(200).json({
         success: true,
@@ -158,7 +158,7 @@ export class AgentController {
   getAgentsByStatus = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { status } = req.params;
-      const agents = this.agentService.getAgentsByStatus(status as 'active' | 'inactive' | 'busy');
+      const agents = await this.agentService.getAgentsByStatus(status as 'active' | 'inactive' | 'busy');
 
       res.status(200).json({
         success: true,

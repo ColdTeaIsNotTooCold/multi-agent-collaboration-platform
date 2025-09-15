@@ -9,34 +9,34 @@ export class AgentService {
     this.agentModel = new AgentModel();
   }
 
-  createAgent(data: CreateAgentRequest): Agent {
+  async createAgent(data: CreateAgentRequest): Promise<Agent> {
     logger.info('Creating new agent', { name: data.name, type: data.type });
     return this.agentModel.create(data);
   }
 
-  getAgent(id: string): Agent | undefined {
+  async getAgent(id: string): Promise<Agent | undefined> {
     return this.agentModel.findById(id);
   }
 
-  getAllAgents(): Agent[] {
+  async getAllAgents(): Promise<Agent[]> {
     return this.agentModel.findAll();
   }
 
-  updateAgent(id: string, data: UpdateAgentRequest): Agent | null {
+  async updateAgent(id: string, data: UpdateAgentRequest): Promise<Agent | null> {
     logger.info('Updating agent', { id, data });
     return this.agentModel.update(id, data);
   }
 
-  deleteAgent(id: string): boolean {
+  async deleteAgent(id: string): Promise<boolean> {
     logger.info('Deleting agent', { id });
     return this.agentModel.delete(id);
   }
 
-  getAgentsByCapability(capability: string): Agent[] {
+  async getAgentsByCapability(capability: string): Promise<Agent[]> {
     return this.agentModel.findByCapability(capability);
   }
 
-  getAgentsByStatus(status: 'active' | 'inactive' | 'busy'): Agent[] {
+  async getAgentsByStatus(status: 'active' | 'inactive' | 'busy'): Promise<Agent[]> {
     return this.agentModel.findByStatus(status);
   }
 }

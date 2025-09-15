@@ -1,81 +1,223 @@
 import { Task, CreateTaskRequest, UpdateTaskRequest } from '../types';
-import { v4 as uuidv4 } from 'uuid';
+import { prisma } from '../utils/database';
 
 export class TaskModel {
-  private tasks: Map<string, Task> = new Map();
+  async create(data: CreateTaskRequest, createdBy: string): Promise<Task> {
+    const task = await prisma.task.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        priority: data.priority.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH',
+        createdBy,
+        metadata: data.metadata || {}
+      }
+    });
 
-  create(data: CreateTaskRequest, createdBy: string): Task {
-    const task: Task = {
-      id: uuidv4(),
-      title: data.title,
-      description: data.description,
-      status: 'pending',
-      priority: data.priority,
-      createdBy,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      metadata: data.metadata || {}
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
     };
-
-    this.tasks.set(task.id, task);
-    return task;
   }
 
-  findById(id: string): Task | undefined {
-    return this.tasks.get(id);
-  }
+  async findById(id: string): Promise<Task | undefined> {
+    const task = await prisma.task.findUnique({
+      where: { id }
+    });
 
-  findAll(): Task[] {
-    return Array.from(this.tasks.values());
-  }
+    if (!task) return undefined;
 
-  update(id: string, data: UpdateTaskRequest): Task | null {
-    const task = this.tasks.get(id);
-    if (!task) return null;
-
-    const updatedTask = {
-      ...task,
-      ...data,
-      updatedAt: new Date(),
-      completedAt: data.status === 'completed' ? new Date() : task.completedAt
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
     };
-
-    this.tasks.set(id, updatedTask);
-    return updatedTask;
   }
 
-  delete(id: string): boolean {
-    return this.tasks.delete(id);
+  async findAll(): Promise<Task[]> {
+    const tasks = await prisma.task.findMany();
+
+    return tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
+    }));
   }
 
-  findByStatus(status: Task['status']): Task[] {
-    return this.findAll().filter(task => task.status === status);
-  }
+  async update(id: string, data: UpdateTaskRequest): Promise<Task | null> {
+    const updateData: any = { ...data };
 
-  findByAssignee(agentId: string): Task[] {
-    return this.findAll().filter(task => task.assignedTo === agentId);
-  }
+    if (data.status) {
+      updateData.status = data.status.toUpperCase() as 'PENDING' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+      if (data.status === 'completed') {
+        updateData.completedAt = new Date();
+      }
+    }
 
-  findByCreator(creatorId: string): Task[] {
-    return this.findAll().filter(task => task.createdBy === creatorId);
-  }
+    if (data.priority) {
+      updateData.priority = data.priority.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH';
+    }
 
-  findByPriority(priority: Task['priority']): Task[] {
-    return this.findAll().filter(task => task.priority === priority);
-  }
+    const task = await prisma.task.update({
+      where: { id },
+      data: updateData
+    });
 
-  assignTask(taskId: string, agentId: string): Task | null {
-    const task = this.tasks.get(taskId);
-    if (!task) return null;
-
-    const updatedTask = {
-      ...task,
-      assignedTo: agentId,
-      status: 'assigned' as const,
-      updatedAt: new Date()
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
     };
+  }
 
-    this.tasks.set(taskId, updatedTask);
-    return updatedTask;
+  async delete(id: string): Promise<boolean> {
+    try {
+      await prisma.task.delete({
+        where: { id }
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async findByStatus(status: Task['status']): Promise<Task[]> {
+    const tasks = await prisma.task.findMany({
+      where: {
+        status: status.toUpperCase() as 'PENDING' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
+      }
+    });
+
+    return tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
+    }));
+  }
+
+  async findByAssignee(agentId: string): Promise<Task[]> {
+    const tasks = await prisma.task.findMany({
+      where: { assignedTo: agentId }
+    });
+
+    return tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
+    }));
+  }
+
+  async findByCreator(creatorId: string): Promise<Task[]> {
+    const tasks = await prisma.task.findMany({
+      where: { createdBy: creatorId }
+    });
+
+    return tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
+    }));
+  }
+
+  async findByPriority(priority: Task['priority']): Promise<Task[]> {
+    const tasks = await prisma.task.findMany({
+      where: {
+        priority: priority.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH'
+      }
+    });
+
+    return tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
+    }));
+  }
+
+  async assignTask(taskId: string, agentId: string): Promise<Task | null> {
+    const task = await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        assignedTo: agentId,
+        status: 'ASSIGNED'
+      }
+    });
+
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status.toLowerCase() as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'failed',
+      priority: task.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      assignedTo: task.assignedTo,
+      createdBy: task.createdBy,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      completedAt: task.completedAt,
+      metadata: task.metadata
+    };
   }
 }

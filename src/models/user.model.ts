@@ -1,41 +1,97 @@
 import { User, LoginRequest } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 import { hashPassword, comparePassword } from '../utils/bcrypt';
+import { prisma } from '../utils/database';
 
 export class UserModel {
-  private users: Map<string, User> = new Map();
-
   async create(username: string, email: string, password: string, role: 'admin' | 'user' = 'user'): Promise<User> {
     const hashedPassword = await hashPassword(password);
 
-    const user: User = {
-      id: uuidv4(),
-      username,
-      email,
-      password: hashedPassword,
-      role,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    const user = await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+        role: role.toUpperCase() as 'USER' | 'ADMIN'
+      }
+    });
 
-    this.users.set(user.id, user);
-    return user;
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      role: user.role.toLowerCase() as 'admin' | 'user',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
   }
 
   async findByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    const user = await prisma.user.findUnique({
+      where: { username }
+    });
+
+    if (!user) return undefined;
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      role: user.role.toLowerCase() as 'admin' | 'user',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) return undefined;
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      role: user.role.toLowerCase() as 'admin' | 'user',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
   }
 
-  findById(id: string): User | undefined {
-    return this.users.get(id);
+  async findById(id: string): Promise<User | undefined> {
+    const user = await prisma.user.findUnique({
+      where: { id }
+    });
+
+    if (!user) return undefined;
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      role: user.role.toLowerCase() as 'admin' | 'user',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
   }
 
-  findAll(): User[] {
-    return Array.from(this.users.values());
+  async findAll(): Promise<User[]> {
+    const users = await prisma.user.findMany();
+
+    return users.map(user => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      role: user.role.toLowerCase() as 'admin' | 'user',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }));
   }
 
   async validateLogin(username: string, password: string): Promise<User | null> {
