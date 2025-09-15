@@ -151,16 +151,19 @@ This epic implements a **Minimum Viable Product (MVP)** version of the multi-age
 - Core task orchestration logic
 - Simple but functional user interface
 
-## Tasks Created
-- [ ] #2 -  (parallel: )
-- [ ] #3 -  (parallel: )
-- [ ] #4 -  (parallel: )
-- [ ] #5 -  (parallel: )
-- [ ] #6 -  (parallel: )
+## Tasks Created (MVP)
+- [ ] 001.md - Core Backend and APIs (MVP)
+- [ ] 002.md - Database Schema and Setup (MVP)
+- [ ] 003.md - Frontend Dashboard (MVP)
+- [ ] 004.md - AI Integration (MVP)
+- [ ] 005.md - Deployment and Documentation (MVP)
 
-Total tasks: 5
-Parallel tasks: 5
-Sequential tasks: 0
+**Task Summary (MVP):**
+- Total tasks: 5 (vs 8 in full version)
+- All tasks can be partially parallel
+- Estimated total effort: ~320 hours (vs 732 hours)
+- Focus on delivering core value quickly
+
 ## Next Steps After MVP
 
 Once MVP is validated, consider:
