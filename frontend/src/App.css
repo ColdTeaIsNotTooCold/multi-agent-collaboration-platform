@@ -1,0 +1,87 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f8f9fa;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .LayoutContainer {
+    flex-direction: column;
+  }
+
+  .Sidebar {
+    width: 100%;
+    padding: 1rem 0;
+  }
+
+  .MainContent {
+    padding: 1rem;
+  }
+
+  .StatsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .Header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .AgentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .TaskTable {
+    overflow-x: auto;
+  }
+
+  .Filters {
+    flex-direction: column;
+  }
+
+  .SearchBar {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .FormContainer {
+    padding: 1rem;
+  }
+
+  .LoginForm {
+    padding: 1.5rem;
+  }
+
+  .StatsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .Header {
+    padding: 1rem;
+  }
+
+  .MainContent {
+    padding: 1rem;
+  }
+}
